@@ -209,7 +209,7 @@ Make sure these files are present inside the `learning/` folder:
 
 Watch the working of VAANI (Sign Detection + Learning System):
 
-👉 [Watch Demo](sign_learn\demo_video\ISL_Recording_video.mp4)
+👉 [Watch Demo](demo_video/ISL_Recording_video.mp4)
 
 ## 👩‍💻 Author
 
