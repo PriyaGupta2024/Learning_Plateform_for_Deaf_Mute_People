@@ -110,6 +110,9 @@ sign_learn/
 │ ├── class_indices.json
 │ └── views.py
 │
+├── demo_video/
+│ └── ISL_Recording_video.mp4
+│
 ├── sign_learn/
 ├── templates/
 ├── static/
@@ -206,7 +209,7 @@ Make sure these files are present inside the `learning/` folder:
 
 Watch the working of VAANI (Sign Detection + Learning System):
 
-👉 [Watch Demo](demo_video/ISL_Recording_video.mp4)
+👉 [Watch Demo](sign_learn\demo_video\ISL_Recording_video.mp4)
 
 ## 👩‍💻 Author
 
