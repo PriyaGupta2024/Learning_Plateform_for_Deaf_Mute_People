@@ -1,0 +1,139 @@
+{# learning/templates/learning/video_detail.html #}
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{{ video.title }} — VAANI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+  <!-- NAVBAR -->
+  <header class="bg-white shadow-sm">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-lg">V</div>
+        <div>
+          <h1 class="font-bold leading-none text-gray-800">VAANI</h1>
+          <p class="text-xs text-gray-500">Learn Indian Sign Language</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="{% url 'lesson_list' %}" class="text-sm text-gray-700 hover:text-indigo-600">← Back to Lessons</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- VIDEO SECTION -->
+  <main class="max-w-5xl mx-auto px-6 py-10">
+    <div class="bg-white p-6 rounded-2xl shadow-md">
+      <h2 class="text-2xl font-bold text-gray-800">{{ video.title }}</h2>
+      {% if video.description %}
+        <p class="text-gray-600 mt-1 text-sm">{{ video.description }}</p>
+      {% endif %}
+
+      <div class="mt-6 relative pb-[56.25%] h-0 overflow-hidden rounded-xl shadow-lg">
+        {# User progress area (optional) #}
+        {% if user_progress %}
+          <div class="absolute top-4 left-4 right-4 z-10">
+            <div class="text-sm text-gray-600 mb-1">Your progress: {{ user_progress.progress|floatformat:0 }}%</div>
+            <div class="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
+              <div class="h-full" style="width: {{ user_progress.progress|floatformat:0 }}%; background:linear-gradient(90deg,#6366f1,#06b6d4);"></div>
+            </div>
+            {% if user_progress.completed %}
+              <div class="mt-2 text-xs text-green-600">Completed ✔️</div>
+            {% endif %}
+          </div>
+        {% else %}
+          <div class="absolute top-4 left-4 z-10">
+            <div class="text-sm text-gray-500">You haven't started this lesson yet.</div>
+          </div>
+        {% endif %}
+
+        {% if video.video_file %}
+          <video controls preload="metadata" class="absolute top-0 left-0 w-full h-full rounded-xl object-cover">
+            <source src="{{ video.video_file.url }}" type="video/mp4">
+            Your browser does not support HTML5 video.
+          </video>
+        {% else %}
+          <div class="absolute inset-0 flex items-center justify-center text-gray-400 bg-gray-100">
+            No video available.
+          </div>
+        {% endif %}
+      </div>
+
+      {# QUIZZES LIST (one place only) #}
+      <section class="mt-8 border-t pt-6">
+        <h3 class="text-lg font-semibold">Quizzes for this lesson</h3>
+
+        {% if quizzes and quizzes|length > 0 %}
+          <div class="mt-4 grid gap-4">
+            {% for quiz in quizzes %}
+              <div class="p-4 bg-white rounded shadow-sm flex items-center justify-between">
+                <div>
+                  <div class="font-semibold">{{ quiz.title }}</div>
+                  <div class="text-sm text-gray-500">Questions: {{ quiz.questions.count }}</div>
+                </div>
+                <div>
+                  <a href="{% url 'quiz_detail' quiz.id %}" class="px-3 py-2 bg-indigo-600 text-white rounded">Start Quiz</a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-gray-500 mt-3">No quizzes available for this lesson yet.</p>
+        {% endif %}
+      </section>
+
+    </div>
+
+    {# messages (optional) #}
+    {% if messages %}
+      <div class="mt-6">
+        {% for msg in messages %}
+          <div class="mt-2 p-3 rounded {{ msg.tags }} bg-green-50 text-green-800">{{ msg }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+  </main>
+
+  <script>
+  // small helper to read csrf token from cookie (recommended)
+  function getCookie(name) {
+    const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return v ? v.pop() : '';
+  }
+
+  (function(){
+    const video = document.querySelector('video');
+    if (!video) return;
+    let lastSent = -1;
+    const sendProgress = (p) => {
+      fetch("{% url 'update_progress' video.id %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie('csrftoken')
+        },
+        body: JSON.stringify({ progress: p })
+      }).catch(()=>{});
+    };
+
+    video.addEventListener('timeupdate', () => {
+      if (!video.duration || !isFinite(video.duration)) return;
+      const percent = Math.round((video.currentTime / video.duration) * 100);
+      if (Math.abs(percent - lastSent) >= 5) {
+        lastSent = percent;
+        if (percent > 0) sendProgress(percent);
+      }
+    });
+
+    video.addEventListener('ended', () => sendProgress(100));
+  })();
+  </script>
+
+</body>
+</html>

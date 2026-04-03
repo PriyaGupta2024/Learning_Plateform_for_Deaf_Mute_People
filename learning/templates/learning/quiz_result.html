@@ -1,0 +1,59 @@
+{% load static %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{ quiz.title }} — Result</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <main class="max-w-4xl mx-auto p-6">
+    <a href="{% url 'quiz_detail' quiz.id %}" class="text-sm text-indigo-600">← Back to quiz</a>
+
+    <div class="bg-white p-6 rounded-lg shadow mt-4">
+      <h1 class="text-2xl font-semibold">Result — {{ quiz.title }}</h1>
+      <p class="text-sm text-gray-600 mt-2">Score: <strong>{{ score }}/{{ total }}</strong> — {{ percent|floatformat:0 }}%</p>
+      <p class="text-xs text-gray-500 mt-1">Submitted at: {{ attempt.created_at|date:"SHORT_DATETIME_FORMAT" }}</p>
+
+      <div class="mt-6 space-y-4">
+        {% for r in responses %}
+          <div class="p-4 border rounded flex items-start gap-4">
+            {% comment %} find the matching question by order: easiest is to display question text/image via r.quiz.questions? {% endcomment %}
+            {% with question=quiz.questions.all|slice:forloop.counter0|first %}
+              <div class="w-28">
+                {% if question.question_image %}
+                  <img src="{{ question.question_image.url }}" class="w-24 h-24 object-contain rounded" alt="">
+                {% endif %}
+              </div>
+              <div class="flex-1">
+                {% if question.text %}
+                  <div class="font-medium">{{ question.text }}</div>
+                {% endif %}
+                <div class="text-sm text-gray-600 mt-2">
+                  Your answer:
+                  {% if r.selected_option == 1 %}{{ question.option_1 }}
+                  {% elif r.selected_option == 2 %}{{ question.option_2 }}
+                  {% elif r.selected_option == 3 %}{{ question.option_3 }}
+                  {% else %}No answer{% endif %}
+                </div>
+              </div>
+              <div class="text-right">
+                {% if r.correct %}
+                  <div class="text-green-600 font-semibold">Correct</div>
+                {% else %}
+                  <div class="text-red-600 font-semibold">Wrong</div>
+                  <div class="text-xs text-gray-600 mt-1">Correct:
+                    {% if question.correct_option == 1 %}{{ question.option_1 }}
+                    {% elif question.correct_option == 2 %}{{ question.option_2 }}
+                    {% else %}{{ question.option_3 }}{% endif %}
+                  </div>
+                {% endif %}
+              </div>
+            {% endwith %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </main>
+</body>
+</html>

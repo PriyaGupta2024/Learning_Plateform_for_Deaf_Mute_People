@@ -1,0 +1,60 @@
+{% load static %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{ quiz.title }} — Quiz</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <main class="max-w-4xl mx-auto p-6">
+    <a href="{% url 'home' %}" class="text-sm text-indigo-600">← Home</a>
+
+    <div class="bg-white p-6 rounded-lg shadow mt-4">
+      <h1 class="text-2xl font-semibold">{{ quiz.title }}</h1>
+      <p class="text-sm text-gray-500 mt-1">Answer the questions below and submit to see results.</p>
+
+      <form method="post" action="{% url 'submit_quiz' quiz.id %}">
+  {% csrf_token %}
+  {% for q in questions %}
+    <div class="mb-6 p-4 border rounded-lg">
+      <!-- show image if present, otherwise show text -->
+      {% if q.question_image %}
+        <div class="mb-3 text-center">
+          <img src="{{ q.question_image.url }}" alt="Q{{ forloop.counter }}" class="mx-auto w-full max-w-xs h-48 object-contain rounded">
+        </div>
+      {% elif q.text %}
+        <p class="font-medium mb-3">{{ q.text }}</p>
+      {% else %}
+        <p class="text-sm text-gray-500 mb-3"><em>No image or text provided for this question.</em></p>
+      {% endif %}
+
+      <!-- options -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <label class="block p-3 border rounded cursor-pointer">
+          <input type="radio" name="question_{{ q.id }}" value="1" class="mr-2" />
+          <span>{{ q.option_1 }}</span>
+        </label>
+
+        <label class="block p-3 border rounded cursor-pointer">
+          <input type="radio" name="question_{{ q.id }}" value="2" class="mr-2" />
+          <span>{{ q.option_2 }}</span>
+        </label>
+
+        <label class="block p-3 border rounded cursor-pointer">
+          <input type="radio" name="question_{{ q.id }}" value="3" class="mr-2" />
+          <span>{{ q.option_3 }}</span>
+        </label>
+      </div>
+    </div>
+  {% endfor %}
+
+  <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded">Submit</button>
+</form>
+
+
+
+    </div>
+  </main>
+</body>
+</html>

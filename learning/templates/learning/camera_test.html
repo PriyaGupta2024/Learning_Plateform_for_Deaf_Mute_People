@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Camera Test — VAANI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-50 text-gray-800">
+
+<main class="max-w-4xl mx-auto p-6">
+  <a href="{% url 'home' %}" class="text-sm text-indigo-600">← Home</a>
+
+  <div class="bg-white p-6 rounded-lg shadow mt-4">
+    <h1 class="text-2xl font-semibold">Real-Time Sign Detection</h1>
+    <p class="text-sm text-gray-600 mt-2">
+      Place your hand inside the green box and hold steady.
+    </p>
+
+    <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- Webcam Section -->
+      <div class="relative">
+        <video id="webcam" autoplay playsinline
+          class="w-full rounded border bg-black"
+          style="height:360px; object-fit:cover;">
+        </video>
+
+        <!-- ROI Green Box -->
+        <div class="absolute border-4 border-green-500"
+             style="width:260px; height:260px; top:50%; left:50%;
+             transform:translate(-50%,-50%);">
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="space-y-3">
+        <button id="startBtn"
+          class="px-4 py-2 bg-indigo-600 text-white rounded w-full">
+          Start Camera
+        </button>
+
+        <button id="stopBtn"
+          class="px-4 py-2 bg-red-500 text-white rounded w-full">
+          Stop Camera
+        </button>
+
+        <button id="snapBtn"
+          class="px-4 py-2 bg-green-600 text-white rounded w-full">
+          Predict Gesture
+        </button>
+
+        <div class="text-sm mt-3">
+          Status: <span id="statusText">idle</span>
+        </div>
+
+        <canvas id="snapshotCanvas" style="display:none;"></canvas>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="mt-6 border-t pt-4">
+  <h2 class="text-lg font-semibold">Upload Image Test</h2>
+
+  <input type="file" id="imageUpload" accept="image/*"
+         class="mt-2 block w-full border p-2 rounded">
+
+  <button onclick="uploadImage()"
+          class="mt-3 px-4 py-2 bg-blue-600 text-white rounded">
+    Predict Uploaded Image
+  </button>
+</div>
+</main>
+
+<script>
+const video = document.getElementById('webcam');
+const startBtn = document.getElementById('startBtn');
+const stopBtn = document.getElementById('stopBtn');
+const snapBtn = document.getElementById('snapBtn');
+const statusText = document.getElementById('statusText');
+const canvas = document.getElementById('snapshotCanvas');
+
+let stream = null;
+
+/* ------------------ CAMERA START ------------------ */
+async function startCamera() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { width: 640, height: 480 },
+      audio: false
+    });
+
+    video.srcObject = stream;
+    statusText.textContent = "running";
+
+  } catch (err) {
+    alert("Camera access denied.");
+    statusText.textContent = "error";
+  }
+}
+
+/* ------------------ CAMERA STOP ------------------ */
+function stopCamera() {
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+    video.srcObject = null;
+    stream = null;
+    statusText.textContent = "stopped";
+  }
+}
+
+{% comment %} Upload Image Function {% endcomment %}
+function uploadImage() {
+
+  const fileInput = document.getElementById("imageUpload");
+
+  if (fileInput.files.length === 0) {
+    alert("Please select an image");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("image", fileInput.files[0]);
+
+  fetch("/learning/predict_upload/", {
+    method: "POST",
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+
+    statusText.textContent =
+      "Prediction: " + data.prediction +
+      " (" + data.confidence + "%)";
+
+  })
+  .catch(error => {
+    statusText.textContent = "Upload prediction failed";
+  });
+
+}
+
+/* ------------------ PREDICTION ------------------ */
+function captureFrame() {
+
+  if (!stream) {
+    alert("Start camera first.");
+    return;
+  }
+
+  let countdown = 4;
+  statusText.textContent = "Capturing in " + countdown + "...";
+
+  const timer = setInterval(() => {
+    countdown--;
+
+    if (countdown > 0) {
+      statusText.textContent = "Capturing in " + countdown + "...";
+    }
+    else {
+      clearInterval(timer);
+      statusText.textContent = "Processing...";
+
+      const ctx = canvas.getContext("2d");
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      // Mirror fix (important!)
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // ROI size
+      const boxSize = 260;
+
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      const startX = centerX - boxSize / 2;
+      const startY = centerY - boxSize / 2;
+
+      const roiImage = ctx.getImageData(startX, startY, boxSize, boxSize);
+
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = 224;
+      tempCanvas.height = 224;
+
+      const tempCtx = tempCanvas.getContext("2d");
+      tempCtx.putImageData(roiImage, 0, 0);
+
+      const imageData = tempCanvas.toDataURL("image/jpeg");
+
+      fetch("/learning/predict/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: "image=" + encodeURIComponent(imageData)
+      })
+      .then(res => res.json())
+      .then(data => {
+        statusText.textContent =
+          "Prediction: " + data.prediction +
+          " (" + data.confidence + "%)";
+      })
+      .catch(() => {
+        statusText.textContent = "Prediction failed";
+      });
+    }
+
+  }, 1000);
+}
+
+startBtn.addEventListener("click", startCamera);
+stopBtn.addEventListener("click", stopCamera);
+snapBtn.addEventListener("click", captureFrame);
+
+window.addEventListener("beforeunload", stopCamera);
+</script>
+
+</body>
+</html>

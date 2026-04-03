@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VAANI — Sign Up</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* small custom tweaks */
+    .card-glass {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+      backdrop-filter: blur(6px);
+    }
+    /* style inputs inside the form wrapper so we don't need widget_tweaks */
+    .signup-form input[type="text"],
+    .signup-form input[type="email"],
+    .signup-form input[type="password"],
+    .signup-form input[type="tel"],
+    .signup-form textarea,
+    .signup-form select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      color: #fff;
+      outline: none;
+      font-size: 0.95rem;
+    }
+    .signup-form input::placeholder { color: rgba(255,255,255,0.55); }
+    .signup-form label { color: rgba(255,255,255,0.9); font-weight:600; }
+    .field-help { color: rgba(255,255,255,0.75); font-size:0.85rem; }
+    .field-error { color: #fecaca; font-size:0.85rem; margin-top:0.35rem; }
+    /* small responsive width cap for big screens */
+    @media (min-width: 1024px) {
+      .form-width { max-width: 520px; }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-gradient-to-b from-indigo-600 to-indigo-700 flex items-center justify-center p-6">
+
+  <main class="w-full form-width">
+    <div class="mb-6 text-center">
+      <!-- Logo -->
+      <div class="inline-flex items-center gap-3">
+        <div class="w-14 h-14 rounded-full flex items-center justify-center bg-gradient-to-tr from-indigo-800 to-pink-500 shadow-lg">
+          <!-- inline SVG logo -->
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 3C9 3 6 5 6 8v8c0 3 3 5 6 5s6-2 6-5V8c0-3-3-5-6-5z" fill="white" opacity="0.12"></path>
+            <path d="M8 8c0-2.2 1.8-4 4-4s4 1.8 4 4v8c0 2.2-1.8 4-4 4s-4-1.8-4-4V8z" fill="white"></path>
+            <path d="M9.5 9.5c0 .828.672 1.5 1.5 1.5s1.5-.672 1.5-1.5S11.828 8 11 8s-1.5.672-1.5 1.5z" fill="#ffffff"></path>
+          </svg>
+        </div>
+        <div class="text-left">
+          <div class="text-white font-extrabold text-xl">VAANI</div>
+          <div class="text-indigo-200 text-xs">Learn Indian Sign Language</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- card -->
+    <section class="card-glass rounded-2xl shadow-2xl border border-indigo-600/30 p-8">
+      <h2 class="text-2xl font-semibold text-white mb-1">Create your account</h2>
+      <p class="text-indigo-200 text-sm mb-6">Sign up now and start learning Indian Sign Language.</p>
+
+      {# non-field errors (keeps your original logic) #}
+      {% if form.non_field_errors %}
+        <div class="mb-4 p-3 rounded-md bg-red-900/40 border border-red-700 text-red-200 text-sm">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <form method="post" novalidate class="signup-form" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        {# iterate fields (keeps your structure) #}
+        {% for field in form %}
+          <div class="mb-4">
+            {{ field.label_tag }}
+            <div class="mt-2">
+              {{ field }}
+            </div>
+
+            {% if field.help_text %}
+              <div class="field-help mt-1">{{ field.help_text|safe }}</div>
+            {% endif %}
+
+            {% if field.errors %}
+              <div class="field-error">{{ field.errors|striptags }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+
+        <div class="flex items-center justify-between gap-4 mt-6">
+          <button type="submit" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-white text-indigo-700 font-semibold shadow hover:shadow-lg transition">
+            <!-- icon -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="opacity-90">
+              <path stroke="#4338ca" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M12 11V17"></path>
+              <path stroke="#4338ca" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M8 14l4-3 4 3"></path>
+              <path stroke="#4338ca" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M21 12v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6"></path>
+            </svg>
+            Register
+          </button>
+        </div>
+      </form>
+
+      <div class="mt-5 text-center text-sm">
+        <span class="text-indigo-200">Already have an account?</span>
+        <a href="{% url 'login' %}" class="text-white font-medium hover:underline"> Login</a>
+      </div>
+    </section>
+
+    <p class="mt-6 text-center text-xs text-indigo-200/70">
+      By creating an account you agree to our <a href="#" class="underline">Terms</a> and <a href="#" class="underline">Privacy</a>.
+    </p>
+  </main>
+
+  <!-- small JS: show/hide password for any password fields rendered by Django form -->
+  <script>
+    (function(){
+      // find all password inputs in the form and inject a show/hide toggle
+      const pwdInputs = document.querySelectorAll('.signup-form input[type="password"]');
+      pwdInputs.forEach((input, idx) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'relative';
+        // wrap the input
+        input.parentNode.insertBefore(wrapper, input);
+        wrapper.appendChild(input);
+
+        // create toggle button
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.innerText = 'Show';
+        btn.className = 'absolute right-2 top-1/2 -translate-y-1/2 text-xs px-2 py-1 rounded-md bg-indigo-800/50 hover:bg-indigo-800/70 text-indigo-100';
+        btn.style.fontWeight = '600';
+        btn.addEventListener('click', () => {
+          if (input.type === 'password') {
+            input.type = 'text';
+            btn.innerText = 'Hide';
+          } else {
+            input.type = 'password';
+            btn.innerText = 'Show';
+          }
+          input.focus();
+        });
+        wrapper.appendChild(btn);
+
+        // make some space on the right so button doesn't overlap
+        input.style.paddingRight = '3.5rem';
+      });
+    })();
+  </script>
+</body>
+</html>
