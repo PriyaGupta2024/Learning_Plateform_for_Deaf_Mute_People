@@ -115,8 +115,6 @@ sign_learn/
 ├── static/
 ├── db.sqlite3
 └── manage.py
-
-
 ---
 
 ## ⚙️ Installation & Setup
@@ -208,7 +206,7 @@ Make sure these files are present inside the `learning/` folder:
 
 Watch the working of VAANI (Sign Detection + Learning System):
 
-<video src="demo_video/ISL_Recording_video.mp4" controls width="600"></video>
+👉 [Watch Demo](demo_video/ISL_Recording_video.mp4)
 
 ## 👩‍💻 Author
 
