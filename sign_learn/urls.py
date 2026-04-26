@@ -24,6 +24,7 @@ from learning import views as learning_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
-    path('learning/', include('learning.urls')),  
+    path('quizzes/', learning_views.quiz_list, name='quiz_list'),
+    path('learning/', include('learning.urls')),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
 ]

@@ -16,3 +16,11 @@ def get_item(mapping, key):
         except Exception:
             return mapping.get(str(key))
 
+@register.filter(name='get_range')
+def get_range(value):
+    """Return a range object for the given value."""
+    try:
+        return range(int(value))
+    except (ValueError, TypeError):
+        return range(0)
+

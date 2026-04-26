@@ -13,7 +13,9 @@ class Video(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     video_file = CloudinaryField('video', resource_type='video', blank=True, null=True)
+    thumbnail = CloudinaryField('image', resource_type='image', blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    order = models.IntegerField(default=0)
 
     def __str__(self):
         return self.title
@@ -56,12 +58,16 @@ class Question(models.Model):
 class UserResponse(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, null=True, blank=True)
     selected_option = models.IntegerField(choices=[(1,'1'),(2,'2'),(3,'3')])
     correct = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user.username} - Q{self.quiz.id} -> {self.selected_option}"
+    
+    class Meta:
+        ordering = ['question__id']
 
 
 

@@ -1,4 +1,7 @@
 *.h5
 *.mp4
 __pycache__/
-.env
+venv/
+.venv/
+*.pyc
+db.sqlite3

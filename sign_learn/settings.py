@@ -107,7 +107,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -125,7 +125,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # settings.py
 LOGIN_REDIRECT_URL = '/accounts/dashboard/'   # where users land after successful login
-LOGOUT_REDIRECT_URL = '/signup/'            # where users go after logout
+LOGOUT_REDIRECT_URL = 'login'            # where users go after logout
 
 
 

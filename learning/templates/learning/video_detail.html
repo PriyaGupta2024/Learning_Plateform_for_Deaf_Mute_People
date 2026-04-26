@@ -111,15 +111,20 @@
     const video = document.querySelector('video');
     if (!video) return;
     let lastSent = -1;
-    const sendProgress = (p) => {
+    const sendProgress = (p, completed = false) => {
       fetch("{% url 'update_progress' video.id %}", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-CSRFToken": getCookie('csrftoken')
         },
-        body: JSON.stringify({ progress: p })
-      }).catch(()=>{});
+        body: JSON.stringify({ progress: p, completed: completed })
+      }).catch(()=>{}).then(() => {
+        // Update UI after progress update
+        if (completed) {
+          location.reload(); // Refresh to show completed status
+        }
+      });
     };
 
     video.addEventListener('timeupdate', () => {
@@ -131,7 +136,9 @@
       }
     });
 
-    video.addEventListener('ended', () => sendProgress(100));
+    video.addEventListener('ended', () => {
+      sendProgress(100, true); // Mark as completed when video ends
+    });
   })();
   </script>
 

@@ -1,60 +1,98 @@
 {% load static %}
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{ quiz.title }} — Quiz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #F9FAFB; }
+    .option-input:checked + .option-card { border-color: #6366F1; background: rgba(99,102,241,0.08); }
+    .option-card { transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+    .option-card:hover { transform: translateY(-2px); box-shadow: 0 18px 45px -20px rgba(15,23,42,0.18); }
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
-  <main class="max-w-4xl mx-auto p-6">
-    <a href="{% url 'home' %}" class="text-sm text-indigo-600">← Home</a>
-
-    <div class="bg-white p-6 rounded-lg shadow mt-4">
-      <h1 class="text-2xl font-semibold">{{ quiz.title }}</h1>
-      <p class="text-sm text-gray-500 mt-1">Answer the questions below and submit to see results.</p>
-
-      <form method="post" action="{% url 'submit_quiz' quiz.id %}">
-  {% csrf_token %}
-  {% for q in questions %}
-    <div class="mb-6 p-4 border rounded-lg">
-      <!-- show image if present, otherwise show text -->
-      {% if q.question_image %}
-        <div class="mb-3 text-center">
-          <img src="{{ q.question_image.url }}" alt="Q{{ forloop.counter }}" class="mx-auto w-full max-w-xs h-48 object-contain rounded">
-        </div>
-      {% elif q.text %}
-        <p class="font-medium mb-3">{{ q.text }}</p>
-      {% else %}
-        <p class="text-sm text-gray-500 mb-3"><em>No image or text provided for this question.</em></p>
-      {% endif %}
-
-      <!-- options -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <label class="block p-3 border rounded cursor-pointer">
-          <input type="radio" name="question_{{ q.id }}" value="1" class="mr-2" />
-          <span>{{ q.option_1 }}</span>
-        </label>
-
-        <label class="block p-3 border rounded cursor-pointer">
-          <input type="radio" name="question_{{ q.id }}" value="2" class="mr-2" />
-          <span>{{ q.option_2 }}</span>
-        </label>
-
-        <label class="block p-3 border rounded cursor-pointer">
-          <input type="radio" name="question_{{ q.id }}" value="3" class="mr-2" />
-          <span>{{ q.option_3 }}</span>
-        </label>
+<body class="bg-slate-50 text-slate-900">
+  <div class="min-h-screen">
+    <header class="bg-white border-b border-slate-200 shadow-sm">
+      <div class="max-w-6xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <a href="/" class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg">V</div>
+          <div>
+            <p class="text-sm text-slate-500">VAANI</p>
+            <p class="text-base font-semibold text-slate-950">Quiz Center</p>
+          </div>
+        </a>
+        <nav class="flex items-center gap-5 text-sm font-medium text-slate-600">
+          <a href="/" class="transition hover:text-indigo-600">Home</a>
+          <a href="{% url 'lesson_list' %}" class="transition hover:text-indigo-600">Lessons</a>
+          <a href="{% url 'dashboard' %}" class="transition hover:text-indigo-600">Profile</a>
+        </nav>
       </div>
-    </div>
-  {% endfor %}
+    </header>
 
-  <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded">Submit</button>
-</form>
+    <main class="max-w-5xl mx-auto px-6 py-12">
+      <div class="bg-white rounded-[24px] border border-slate-200 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.18)]">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <div>
+            <p class="text-sm uppercase tracking-[0.3em] text-indigo-600 font-semibold">Quiz</p>
+            <h1 class="mt-3 text-4xl font-bold text-slate-950">{{ quiz.title }}</h1>
+          </div>
+          <p class="text-sm text-slate-500">Answer the questions below and submit to see your personalized results.</p>
+        </div>
 
+        <form method="post" action="{% url 'submit_quiz' quiz.id %}">
+          {% csrf_token %}
+          <div class="space-y-6">
+            {% for q in questions %}
+              <div class="rounded-[24px] border border-slate-200 bg-slate-50 p-6 shadow-sm">
+                <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div class="space-y-3">
+                    <p class="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600">Question {{ forloop.counter }}</p>
+                    <h2 class="text-xl font-semibold text-slate-950">{{ q.text|default:'Select the correct answer from the options below' }}</h2>
+                  </div>
+                </div>
 
+                {% if q.question_image %}
+                  <div class="mt-5 rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm">
+                    <img src="{{ q.question_image.url }}" alt="Question image" class="w-full h-72 object-contain bg-slate-100">
+                  </div>
+                {% endif %}
 
-    </div>
-  </main>
+                <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <label class="block">
+                    <input type="radio" name="question_{{ q.id }}" value="1" class="option-input sr-only" />
+                    <div class="option-card rounded-3xl border border-slate-200 bg-white p-4 text-slate-800 cursor-pointer">
+                      <p class="font-semibold">{{ q.option_1 }}</p>
+                    </div>
+                  </label>
+                  <label class="block">
+                    <input type="radio" name="question_{{ q.id }}" value="2" class="option-input sr-only" />
+                    <div class="option-card rounded-3xl border border-slate-200 bg-white p-4 text-slate-800 cursor-pointer">
+                      <p class="font-semibold">{{ q.option_2 }}</p>
+                    </div>
+                  </label>
+                  <label class="block">
+                    <input type="radio" name="question_{{ q.id }}" value="3" class="option-input sr-only" />
+                    <div class="option-card rounded-3xl border border-slate-200 bg-white p-4 text-slate-800 cursor-pointer">
+                      <p class="font-semibold">{{ q.option_3 }}</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <div class="mt-8 text-center">
+            <button type="submit" class="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-10 py-4 text-base font-semibold text-white shadow-2xl shadow-indigo-200/30 transition hover:-translate-y-0.5 hover:brightness-110">Submit Quiz</button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
 </body>
 </html>
